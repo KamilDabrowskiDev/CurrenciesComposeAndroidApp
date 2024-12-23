@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">CurrenciesApp</string>
+
+    <string name="exchange_rates">Exchange rates</string>
+    <string name="action_try_again">Try again</string>
+    <string name="error_message_load_exchange_rates">Could not load current exchange rates.\nPress button to try again</string>
+    <string name="error_message_load_historical_exchange_rates">Could not load historical exchange rates.\nPress button to try again</string>
+    <string name="currency_history">Currency history</string>
+
 </resources>

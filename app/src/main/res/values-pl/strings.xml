@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">CurrenciesApp</string>
+
+    <string name="exchange_rates">Kursy walut</string>
+    <string name="action_try_again">Spróbuj ponownie</string>
+    <string name="error_message_load_exchange_rates">Nie udało się pobrać kursów walut.\nNaciśnij guzik aby spróbować ponownie</string>
+    <string name="error_message_load_historical_exchange_rates">Nie udało się pobrać historycznych kursów walut.\nNaciśnij guzik aby spróbować ponownie</string>
+    <string name="currency_history">Historia waluty</string>
+
+
+</resources>
