@@ -13,12 +13,13 @@ the [NBP API](https://api.nbp.pl/).
 - **Currency Details Screen: Historical Trends**
   - View historical exchange rates of a selected currency
     for the **last 2 weeks**.
-  - Historical exchange rates are descending sorted by date
+  - Historical exchange rates are sorted in descending order by date.
   - Significant rate changes (±10%) are automatically
     **highlighted**.
 
-- **Unit tested**
-  - Data layer and Logic layer
+- **Data layer unit tested**
+- 
+- **Logic layer unit tested**
 
 ## 🛠️ Technology Stack
 
