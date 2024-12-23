@@ -3,8 +3,8 @@ package com.currencies.compose.app.ui.screen.currencies.mvi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.currencies.compose.app.common.async.DispatcherProvider
-import com.currencies.compose.app.common.utils.AppLogger
 import com.currencies.compose.app.common.utils.EventLogger
+import com.currencies.compose.app.logic.Result
 import com.currencies.compose.app.logic.currencies.CurrenciesHandler
 import com.currencies.compose.app.ui.common.other.Debouncer
 import com.currencies.compose.app.ui.screen.currencies.CurrencyItem
@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import com.currencies.compose.app.logic.Result
 
 
 /**

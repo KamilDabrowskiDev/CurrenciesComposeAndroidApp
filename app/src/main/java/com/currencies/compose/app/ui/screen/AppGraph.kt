@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.currencies.compose.app.ui.screen.currencies.CurrenciesScreen
+import com.currencies.compose.app.ui.screen.currencydetail.CurrencyDetailScreen
 
 /**
  * Copyright(c) 2024 Kamil Dąbrowski. All rights reserved
@@ -21,8 +22,8 @@ fun AppGraph() {
             CurrenciesScreen(navController)
         }
 
-//        composable<CurrencyDetailRoute> {
-//            CurrencyDetailScreen(navController)
-//        }
+        composable<CurrencyDetailRoute> {
+            CurrencyDetailScreen(navController)
+        }
     }
 }
