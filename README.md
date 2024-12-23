@@ -18,7 +18,6 @@ the [NBP API](https://api.nbp.pl/).
     **highlighted**.
 
 - **Data layer unit tested**
-- 
 - **Logic layer unit tested**
 
 ## 🛠️ Technology Stack
