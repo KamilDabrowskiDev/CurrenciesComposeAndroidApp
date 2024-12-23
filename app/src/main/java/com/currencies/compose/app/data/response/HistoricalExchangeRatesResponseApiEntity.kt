@@ -1,6 +1,5 @@
 package com.currencies.compose.app.data.response
 
-import com.currencies.compose.app.data.response.HistoricalExchangeRateApiEntity
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
