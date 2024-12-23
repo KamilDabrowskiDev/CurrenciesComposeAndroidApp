@@ -1,0 +1,25 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+
+    ext.ksp_version = '1.9.25-1.0.20'
+    ext.kotlin_version = '1.9.25'
+    ext.hilt_version = '2.50'
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.7.2'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "com.google.dagger:hilt-android-gradle-plugin:$hilt_version"
+    }
+}
+
+plugins {
+    id "org.jetbrains.kotlin.jvm" version "$kotlin_version" apply false
+    id 'com.google.devtools.ksp' version "$ksp_version"
+    id 'org.jetbrains.kotlin.plugin.serialization' version "$kotlin_version"
+
+}
+
+tasks.register('clean', Delete) {
+    delete rootProject.layout.buildDirectory
+}

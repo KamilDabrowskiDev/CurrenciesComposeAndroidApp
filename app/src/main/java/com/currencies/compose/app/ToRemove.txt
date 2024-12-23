@@ -1,0 +1,1 @@
+com.currencies.compose.app
