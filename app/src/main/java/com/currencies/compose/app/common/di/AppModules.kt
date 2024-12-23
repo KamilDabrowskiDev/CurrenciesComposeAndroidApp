@@ -12,6 +12,14 @@ import com.currencies.compose.app.data.validator.CurrentExchangeRateTableApiEnti
 import com.currencies.compose.app.data.validator.EffectiveDateValidator
 import com.currencies.compose.app.data.validator.HistoricalExchangeRateApiEntityValidator
 import com.currencies.compose.app.data.validator.HistoricalExchangeRatesResponseApiEntityValidator
+import com.currencies.compose.app.logic.currencies.CurrenciesHandler
+import com.currencies.compose.app.logic.currencies.CurrenciesHandlerImpl
+import com.currencies.compose.app.logic.currencies.CurrencyItemMapper
+import com.currencies.compose.app.logic.historicalexchangerate.DateRangeCalculator
+import com.currencies.compose.app.logic.historicalexchangerate.HistoricalExchangeRateHandler
+import com.currencies.compose.app.logic.historicalexchangerate.HistoricalExchangeRateHandlerImpl
+import com.currencies.compose.app.logic.historicalexchangerate.HistoricalExchangeRateItemMapper
+import com.currencies.compose.app.logic.historicalexchangerate.ISO8601TimeTextToTimestampUTCConverter
 import com.squareup.moshi.Moshi
 import dagger.Module
 import dagger.Provides
@@ -137,3 +145,63 @@ class ValidatorModule() {
         )
     }
 }
+
+@Module
+@InstallIn(SingletonComponent::class)
+class LogicModule {
+
+    @Provides
+    fun currencyItemMapper(): CurrencyItemMapper {
+        return CurrencyItemMapper()
+    }
+
+    @Provides
+    @Singleton
+    fun currenciesHandler(
+        apiRepository: NBPApiRepository,
+        dispatcherProvider: DispatcherProvider,
+        currencyItemMapper: CurrencyItemMapper,
+        validator: CurrentExchangeRateTableApiEntityValidator
+    ): CurrenciesHandler {
+        return CurrenciesHandlerImpl(
+            apiRepository = apiRepository,
+            dispatcherProvider = dispatcherProvider,
+            currencyItemMapper = currencyItemMapper,
+            tableEntityValidator = validator
+        )
+    }
+
+    @Provides
+    fun iso8601TimeTextToTimestampMapper(): ISO8601TimeTextToTimestampUTCConverter {
+        return ISO8601TimeTextToTimestampUTCConverter()
+    }
+
+    @Provides
+    fun historicalCurrencyExchangeRateItemMapper(
+        isoTimeMapper: ISO8601TimeTextToTimestampUTCConverter
+    ): HistoricalExchangeRateItemMapper {
+        return HistoricalExchangeRateItemMapper(isoTimeConverter = isoTimeMapper)
+    }
+
+    @Provides
+    fun dateRangeCalculator(): DateRangeCalculator {
+        return DateRangeCalculator()
+    }
+
+    @Provides
+    @Singleton
+    fun historicalExchangeRateHandler(
+        apiRepository: NBPApiRepository,
+        dispatcherProvider: DispatcherProvider,
+        mapper: HistoricalExchangeRateItemMapper,
+        responseValidator: HistoricalExchangeRatesResponseApiEntityValidator
+    ): HistoricalExchangeRateHandler {
+        return HistoricalExchangeRateHandlerImpl(
+            dispatcherProvider = dispatcherProvider,
+            apiRepository = apiRepository,
+            historicalExchangeRateItemMapper = mapper,
+            responseValidator = responseValidator
+        )
+    }
+}
+
