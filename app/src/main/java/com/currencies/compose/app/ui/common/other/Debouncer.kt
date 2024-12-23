@@ -13,14 +13,20 @@ class Debouncer<T>(
     private val scope: CoroutineScope,
     private val debounceTimeMillis: Long = 600L
 ) {
+
     private var debounceJob: Job? = null
+    private var hasAcceptedEvent: Boolean = false
 
     fun invoke(event: T, onEvent: (T) -> Unit) {
-        debounceJob?.cancel()
+        if (hasAcceptedEvent) return
 
+        hasAcceptedEvent = true
+        onEvent(event)
+
+        debounceJob?.cancel()
         debounceJob = scope.launch {
             delay(debounceTimeMillis)
-            onEvent(event)
+            hasAcceptedEvent = false
         }
     }
 }

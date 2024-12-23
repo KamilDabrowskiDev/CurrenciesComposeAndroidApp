@@ -1,13 +1,10 @@
 package com.currencies.compose.app.ui.screen.currencies.mvi
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.currencies.compose.app.common.async.DispatcherProvider
-import com.currencies.compose.app.common.utils.EventLogger
+import com.currencies.compose.app.common.mvi.BaseViewModel
 import com.currencies.compose.app.logic.Result
 import com.currencies.compose.app.logic.currencies.CurrenciesHandler
 import com.currencies.compose.app.ui.common.other.Debouncer
-import com.currencies.compose.app.ui.screen.currencies.CurrencyItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -28,9 +25,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CurrenciesViewModel @Inject constructor(
-    private val dispatcherProvider: DispatcherProvider,
     private val currenciesHandler: CurrenciesHandler
-) : ViewModel() {
+) : BaseViewModel<CurrenciesViewEvent, CurrenciesViewAction>() {
 
     private val currencyItemClickDebounce = Debouncer<CurrenciesViewEvent>(viewModelScope)
     private val retryButtonDebounce = Debouncer<CurrenciesViewEvent>(viewModelScope)
@@ -50,16 +46,13 @@ class CurrenciesViewModel @Inject constructor(
         )
 
     private fun initialize() {
-        viewModelScope.launch {
-            loadCurrencies()
-        }
+        loadCurrencies()
     }
 
     private fun loadCurrencies() {
         viewModelScope.launch {
 
-
-            onAverageCurrenciesLoadStarted()
+            onAction(CurrenciesViewAction.OnAverageCurrenciesLoadStarted)
 
             delay(400)
 
@@ -67,25 +60,28 @@ class CurrenciesViewModel @Inject constructor(
 
             when (result) {
                 is Result.Success -> {
-                    onAverageCurrenciesLoadSuccess(result.data)
+                    onAction(CurrenciesViewAction.OnAverageCurrenciesLoadSuccess(result.data))
                 }
 
                 is Result.Failure -> {
-                    onAverageCurrenciesLoadError()
+                    onAction(CurrenciesViewAction.OnAverageCurrenciesLoadError)
                 }
             }
         }
     }
 
-
-    fun onEvent(event: CurrenciesViewEvent) {
-        EventLogger.logEvent(event)
+    override fun onEvent(event: CurrenciesViewEvent) {
+        super.onEvent(event)
 
         when (event) {
 
+            CurrenciesViewEvent.BackPressed -> {
+                onAction(CurrenciesViewAction.OnExitNeeded)
+            }
+
             is CurrenciesViewEvent.CurrencyItemClicked -> {
                 currencyItemClickDebounce.invoke(event) {
-                    handleCurrencyItemClicked(event.item)
+                    onAction(CurrenciesViewAction.OnCurrencyDetailNeedToBeOpened(event.item))
                 }
             }
 
@@ -94,15 +90,7 @@ class CurrenciesViewModel @Inject constructor(
                     loadCurrencies()
                 }
             }
-
-            CurrenciesViewEvent.BackPressed -> {
-                onExitNeeded()
-            }
         }
-    }
-
-    private fun handleCurrencyItemClicked(currencyItem: CurrencyItem) {
-        onCurrencyDetailNeedToBeOpened(currencyItem)
     }
 
     ///////////////////////////////////////////////////////////////
@@ -119,44 +107,51 @@ class CurrenciesViewModel @Inject constructor(
         }
     }
 
-    private fun onAverageCurrenciesLoadStarted() {
-        _state.update {
-            it.copy(
-                loadCurrenciesState = AverageCurrenciesLoadState.LoadStarted
-            )
+    override fun onAction(action: CurrenciesViewAction) {
+        super.onAction(action)
+
+        when (action) {
+
+            CurrenciesViewAction.OnAverageCurrenciesLoadError -> {
+                _state.update {
+                    it.copy(
+                        loadCurrenciesState = AverageCurrenciesLoadState.LoadError
+                    )
+                }
+            }
+
+            CurrenciesViewAction.OnAverageCurrenciesLoadStarted -> {
+                _state.update {
+                    it.copy(
+                        loadCurrenciesState = AverageCurrenciesLoadState.LoadStarted
+                    )
+                }
+            }
+
+            is CurrenciesViewAction.OnAverageCurrenciesLoadSuccess -> {
+                _state.update {
+                    it.copy(
+                        loadCurrenciesState = AverageCurrenciesLoadState.LoadSuccess(action.items)
+                    )
+                }
+            }
+
+            is CurrenciesViewAction.OnCurrencyDetailNeedToBeOpened -> {
+                val item = action.item
+
+                sendEffect(
+                    CurrenciesViewEffect.OpenCurrencyDetail(
+                        currencyTableName = item.currencyTableName,
+                        currencyName = item.currencyName,
+                        currencyCode = item.currencyCode,
+                        currencyAverageExchangeRatePLN = item.averageExchangeRatePLN
+                    )
+                )
+            }
+
+            CurrenciesViewAction.OnExitNeeded -> {
+                sendEffect(CurrenciesViewEffect.ExitApp)
+            }
         }
-    }
-
-    private fun onAverageCurrenciesLoadSuccess(items: List<CurrencyItem>) {
-        _state.update {
-            it.copy(
-                loadCurrenciesState = AverageCurrenciesLoadState.LoadSuccess(items)
-            )
-        }
-    }
-
-    private fun onAverageCurrenciesLoadError() {
-        _state.update {
-            it.copy(
-                loadCurrenciesState = AverageCurrenciesLoadState.LoadError
-            )
-        }
-    }
-
-    private fun onCurrencyDetailNeedToBeOpened(
-        item: CurrencyItem
-    ) {
-        sendEffect(
-            CurrenciesViewEffect.OpenCurrencyDetail(
-                currencyTableName = item.currencyTableName,
-                currencyName = item.currencyName,
-                currencyCode = item.currencyCode,
-                currencyAverageExchangeRatePLN = item.averageExchangeRatePLN
-            )
-        )
-    }
-
-    private fun onExitNeeded() {
-        sendEffect(CurrenciesViewEffect.ExitApp)
     }
 }

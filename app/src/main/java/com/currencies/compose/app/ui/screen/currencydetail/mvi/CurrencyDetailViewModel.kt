@@ -1,16 +1,15 @@
 package com.currencies.compose.app.ui.screen.currencydetail.mvi
 
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import com.currencies.compose.app.common.utils.EventLogger
+import com.currencies.compose.app.common.mvi.BaseViewModel
 import com.currencies.compose.app.logic.Result
 import com.currencies.compose.app.logic.historicalexchangerate.DateRangeCalculator
 import com.currencies.compose.app.logic.historicalexchangerate.HistoricalExchangeRateHandler
+import com.currencies.compose.app.ui.common.other.Debouncer
 import com.currencies.compose.app.ui.screen.CurrencyDetailRoute
 import com.currencies.compose.app.ui.screen.currencydetail.model.CurrencyHistoryListState
-import com.currencies.compose.app.ui.screen.currencydetail.model.HistoricalCurrencyExchangeRateItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -36,7 +35,9 @@ class CurrencyDetailViewModel @Inject constructor(
     private val historicalExchangeRateHandler: HistoricalExchangeRateHandler,
     private val dateRangeCalculator: DateRangeCalculator,
     savedStateHandle: SavedStateHandle
-) : ViewModel() {
+) : BaseViewModel<CurrencyDetailViewEvent, CurrencyDetailViewAction>() {
+
+    private val retryDebounce = Debouncer<CurrencyDetailViewEvent>(viewModelScope)
 
     private val passedRoute = savedStateHandle.toRoute<CurrencyDetailRoute>()
 
@@ -53,12 +54,11 @@ class CurrencyDetailViewModel @Inject constructor(
     )
 
     private fun initialize() {
-
-        onRefreshInitData(
+        onAction(CurrencyDetailViewAction.OnInitDataRefreshed(
             currencyName = passedRoute.currencyName,
             currencyCode = passedRoute.currencyCode,
             currencyAverageExchangeValue = BigDecimal.valueOf(passedRoute.currencyAverageExchangeRatePLN)
-        )
+        ))
 
         loadCurrencyHistoryItems()
     }
@@ -67,13 +67,13 @@ class CurrencyDetailViewModel @Inject constructor(
     private fun loadCurrencyHistoryItems() {
         viewModelScope.launch {
 
-            onCurrencyHistoryItemsLoadStarted()
+            onAction(CurrencyDetailViewAction.OnCurrencyHistoryItemsLoadStarted)
 
             delay(400)
 
             val queryDateRange = dateRangeCalculator.getDateRangeFromTimestamp(
                 timestamp = Clock.System.now().toEpochMilliseconds(),
-                daysBefore = 14
+                daysBefore = DAYS_BEFORE_CURRENT_DATE
             )
 
             val result = historicalExchangeRateHandler.getHistoricalExchangeRates(
@@ -86,37 +86,78 @@ class CurrencyDetailViewModel @Inject constructor(
             when (result) {
                 is Result.Success -> {
                     val historicalRates = result.data
-                    onCurrencyHistoryItemsLoadSuccess(historicalRates)
+                    onAction(CurrencyDetailViewAction.OnCurrencyHistoryItemsLoadSuccess(historicalRates))
                 }
 
                 is Result.Failure -> {
-                    onCurrencyHistoryItemsLoadError()
+                    onAction(CurrencyDetailViewAction.OnCurrencyHistoryItemsLoadError)
                 }
             }
         }
     }
 
-    fun onEvent(event: CurrencyDetailViewEvent) {
-        EventLogger.logEvent(event)
+    override fun onEvent(event: CurrencyDetailViewEvent) {
+        super.onEvent(event)
 
         when (event) {
             CurrencyDetailViewEvent.BackPressed -> {
-                onExitNeeded()
+                onAction(CurrencyDetailViewAction.OnExitNeeded)
             }
 
             CurrencyDetailViewEvent.RetryButtonClicked -> {
-                loadCurrencyHistoryItems()
+                retryDebounce.invoke(event) { event ->
+                    loadCurrencyHistoryItems()
+                }
             }
         }
     }
 
-    ////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////
-    // UI interaction methods
-    ////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////
+    override fun onAction(action: CurrencyDetailViewAction) {
+        super.onAction(action)
+
+        when (action) {
+
+            is CurrencyDetailViewAction.OnInitDataRefreshed -> {
+                _state.update {
+                    it.copy(
+                        currencyName = action.currencyName,
+                        currencyCode = action.currencyCode,
+                        currencyAverageExchangeRatePLN = action.currencyAverageExchangeValue
+                    )
+                }
+            }
+
+            CurrencyDetailViewAction.OnCurrencyHistoryItemsLoadStarted -> {
+                _state.update {
+                    it.copy(
+                        currencyHistoryListState = CurrencyHistoryListState.LoadStarted
+                    )
+                }
+            }
+
+            is CurrencyDetailViewAction.OnCurrencyHistoryItemsLoadSuccess -> {
+                _state.update {
+                    it.copy(
+                        currencyHistoryListState = CurrencyHistoryListState.LoadSuccess(
+                            items = action.items
+                        )
+                    )
+                }
+            }
+
+            CurrencyDetailViewAction.OnCurrencyHistoryItemsLoadError -> {
+                _state.update {
+                    it.copy(
+                        currencyHistoryListState = CurrencyHistoryListState.LoadError
+                    )
+                }
+            }
+
+            CurrencyDetailViewAction.OnExitNeeded -> {
+                sendEffect(CurrencyDetailViewEffect.Exit)
+            }
+        }
+    }
 
     private fun sendEffect(effect: CurrencyDetailViewEffect) {
         viewModelScope.launch {
@@ -124,48 +165,7 @@ class CurrencyDetailViewModel @Inject constructor(
         }
     }
 
-    private fun onRefreshInitData(
-        currencyName: String,
-        currencyCode: String,
-        currencyAverageExchangeValue: BigDecimal
-    ) {
-        _state.update {
-            it.copy(
-                currencyName = currencyName,
-                currencyCode = currencyCode,
-                currencyAverageExchangeRatePLN = currencyAverageExchangeValue
-            )
-        }
+    companion object {
+        const val DAYS_BEFORE_CURRENT_DATE = 14
     }
-
-    private fun onCurrencyHistoryItemsLoadStarted() {
-        _state.update {
-            it.copy(
-                currencyHistoryListState = CurrencyHistoryListState.LoadStarted
-            )
-        }
-    }
-
-    private fun onCurrencyHistoryItemsLoadSuccess(items: List<HistoricalCurrencyExchangeRateItem>) {
-        _state.update {
-            it.copy(
-                currencyHistoryListState = CurrencyHistoryListState.LoadSuccess(
-                    items = items
-                )
-            )
-        }
-    }
-
-    private fun onCurrencyHistoryItemsLoadError() {
-        _state.update {
-            it.copy(
-                currencyHistoryListState = CurrencyHistoryListState.LoadError
-            )
-        }
-    }
-
-    private fun onExitNeeded() {
-        sendEffect(CurrencyDetailViewEffect.Exit)
-    }
-
 }
