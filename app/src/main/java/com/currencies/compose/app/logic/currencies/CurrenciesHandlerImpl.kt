@@ -5,7 +5,7 @@ import com.currencies.compose.app.common.utils.AppLogger
 import com.currencies.compose.app.data.NBPApiRepository
 import com.currencies.compose.app.data.request.GetCurrentExchangeTableReqParams
 import com.currencies.compose.app.data.validator.CurrentExchangeRateTableApiEntityValidator
-import com.currencies.compose.app.ui.screen.currencies.CurrencyItem
+import com.currencies.compose.app.ui.screen.currencies.model.CurrencyItem
 import com.currencies.compose.app.logic.ErrorType
 import com.currencies.compose.app.logic.Result
 import kotlinx.coroutines.async

@@ -31,6 +31,7 @@ import com.currencies.compose.app.logic.mocks.MockedItemsFactory
 import com.currencies.compose.app.ui.common.components.OutlinedFrame
 import com.currencies.compose.app.ui.common.composeresources.AppColors
 import com.currencies.compose.app.ui.common.styling.AppTheme
+import com.currencies.compose.app.ui.screen.currencies.model.CurrencyItem
 import com.currencies.compose.app.ui.screen.currencies.mvi.AverageCurrenciesLoadState
 import com.currencies.compose.app.ui.screen.currencies.mvi.CurrenciesViewEvent
 import com.currencies.compose.app.ui.screen.currencies.mvi.CurrenciesViewState

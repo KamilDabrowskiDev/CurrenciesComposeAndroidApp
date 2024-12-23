@@ -26,7 +26,7 @@ import org.robolectric.annotation.Config
 import javax.inject.Inject
 
 import com.currencies.compose.app.logic.Result
-import com.currencies.compose.app.ui.screen.currencies.CurrencyItem
+import com.currencies.compose.app.ui.screen.currencies.model.CurrencyItem
 
 
 /**

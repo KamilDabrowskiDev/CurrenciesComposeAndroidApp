@@ -1,6 +1,6 @@
 package com.currencies.compose.app.logic.mocks
 
-import com.currencies.compose.app.ui.screen.currencies.CurrencyItem
+import com.currencies.compose.app.ui.screen.currencies.model.CurrencyItem
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.UUID

@@ -1,4 +1,4 @@
-package com.currencies.compose.app.ui.screen.currencies
+package com.currencies.compose.app.ui.screen.currencies.model
 
 import java.math.BigDecimal
 

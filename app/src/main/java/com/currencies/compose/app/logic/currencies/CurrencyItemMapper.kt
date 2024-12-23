@@ -1,7 +1,7 @@
 package com.currencies.compose.app.logic.currencies
 
 import com.currencies.compose.app.data.response.CurrentExchangeRateApiEntity
-import com.currencies.compose.app.ui.screen.currencies.CurrencyItem
+import com.currencies.compose.app.ui.screen.currencies.model.CurrencyItem
 
 /**
  * Copyright(c) 2024 Kamil Dąbrowski. All rights reserved

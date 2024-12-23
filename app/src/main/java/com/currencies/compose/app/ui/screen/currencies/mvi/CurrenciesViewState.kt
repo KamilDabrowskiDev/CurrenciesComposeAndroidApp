@@ -1,6 +1,6 @@
 package com.currencies.compose.app.ui.screen.currencies.mvi
 
-import com.currencies.compose.app.ui.screen.currencies.CurrencyItem
+import com.currencies.compose.app.ui.screen.currencies.model.CurrencyItem
 
 
 /**
