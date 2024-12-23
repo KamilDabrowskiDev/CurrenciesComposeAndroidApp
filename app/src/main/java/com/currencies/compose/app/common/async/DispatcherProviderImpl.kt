@@ -1,3 +1,4 @@
+package com.currencies.compose.app.common.async
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
